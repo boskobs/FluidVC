@@ -13,11 +13,13 @@ jobs:
           - os: linux
             runs-on: ubuntu-latest
             build-script: build:linux
+            install-command: npm ci
             artifact-name: fluidvc-linux
             artifact-path: release/**/*.AppImage
           - os: windows
             runs-on: windows-latest
             build-script: build:win
+            install-command: npm install
             artifact-name: fluidvc-windows
             artifact-path: release/**/*.exe
 
@@ -31,9 +33,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: ${{ matrix.install-command }}
       - name: Build for ${{ matrix.os }}
         run: npm run ${{ matrix.build-script }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
