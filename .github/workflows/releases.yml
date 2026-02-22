@@ -1,0 +1,80 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            runs-on: ubuntu-latest
+            build-script: build:linux
+            artifact-name: fluidvc-linux
+            artifact-path: release/**/*.AppImage
+          - os: windows
+            runs-on: windows-latest
+            build-script: build:win
+            artifact-name: fluidvc-windows
+            artifact-path: release/**/*.exe
+
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build for ${{ matrix.os }}
+        run: npm run ${{ matrix.build-script }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-path }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed to push tags
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts/
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: |
+            ./artifacts/fluidvc-linux/**/*.AppImage
+            ./artifacts/fluidvc-windows/**/*.exe
+      - name: Create/Update GitHub release for latest tag
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Release latest
+          files: |
+            ./artifacts/fluidvc-linux/**/*.AppImage
+            ./artifacts/fluidvc-windows/**/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Move latest tag to this commit
+        run: |
+          git tag -f latest ${{ github.sha }}
+          git push -f origin latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
