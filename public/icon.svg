@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="96" ry="96" fill="#16161e"/>
+
+  <!-- Filmstrip paths scaled from 24x24 viewBox to 512x512 (×21.33) -->
+  <!-- Vertical bars (opacity 0.45) -->
+  <g fill="#6366f1" opacity="0.45">
+    <!-- bar x=4 w=2  → 85,128  42,256 -->
+    <rect x="85"  y="128" width="42"  height="256" rx="6"/>
+    <!-- bar x=7 w=1  → 149,128  21,256 -->
+    <rect x="149" y="128" width="21"  height="256" rx="4"/>
+    <!-- bar x=9 w=2  → 192,128  42,256 -->
+    <rect x="192" y="128" width="42"  height="256" rx="6"/>
+    <!-- bar x=12 w=1 → 256,128  21,256 -->
+    <rect x="256" y="128" width="21"  height="256" rx="4"/>
+    <!-- bar x=14 w=2 → 299,128  42,256 -->
+    <rect x="299" y="128" width="42"  height="256" rx="6"/>
+    <!-- bar x=17 w=1 → 362,128  21,256 -->
+    <rect x="362" y="128" width="21"  height="256" rx="4"/>
+    <!-- bar x=19 w=2 → 405,128  42,256 -->
+    <rect x="405" y="128" width="42"  height="256" rx="6"/>
+  </g>
+
+  <!-- Full-width top and bottom strips -->
+  <g fill="#6366f1">
+    <!-- top strip: y=2→42  h=2→42 -->
+    <rect x="42"  y="85"  width="427" height="42" rx="8"/>
+    <!-- bottom strip: y=18→384  h=2→42 -->
+    <rect x="42"  y="384" width="427" height="42" rx="8"/>
+
+    <!-- Play triangle: original points 5,9 → 12,12 → 5,15
+         scaled ×21.33: 106,192 → 256,256 → 106,320
+         nudged right a bit for optical centering -->
+    <polygon points="128,185 320,256 128,327"/>
+  </g>
+</svg>
