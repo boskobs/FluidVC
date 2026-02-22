@@ -24,6 +24,10 @@ async function main() {
             console.log(`Downloading ${app} for ${platform}...`);
             await downloadFile(url, outputPath);
             console.log(`Saved to ${outputPath}`);
+            // Make executable on non-Windows platforms
+            if (platform !== 'win32') {
+                await fs.promises.chmod(outputPath, 0o755);
+            }
         }
     }
 }

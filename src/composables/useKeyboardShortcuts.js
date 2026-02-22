@@ -7,13 +7,18 @@ import { useSegmentStore } from '@/stores/segmentStore.js'
  * Must be called inside a component's setup().
  *
  * Shortcuts:
- *   Space       — toggle play/pause
- *   I           — mark in point
- *   O / E       — mark out point (creates segment)
- *   ArrowLeft   — step back one frame
- *   ArrowRight  — step forward one frame
- *   ,           — step back (prev frame alias)
- *   .           — step forward (next frame alias)
+ *   Space            — toggle play/pause
+ *   I                — mark in point
+ *   O / E            — mark out point (creates segment)
+ *   ArrowLeft        — step back one frame
+ *   ArrowRight       — step forward one frame
+ *   Ctrl+ArrowLeft   — seek back 10 seconds
+ *   Ctrl+ArrowRight  — seek forward 10 seconds
+ *   Shift+ArrowLeft  — seek back 60 seconds
+ *   Shift+ArrowRight — seek forward 60 seconds
+ *   ,                — step back (prev frame alias)
+ *   .                — step forward (next frame alias)
+ *   M                — toggle mute
  *   Delete/Backspace — delete selected segment
  *
  * @param {object} opts
@@ -47,15 +52,42 @@ export function useKeyboardShortcuts({ togglePlay, stepFrame }) {
         break
 
       case 'ArrowLeft':
+        e.preventDefault()
+        if (!videoStore.hasFile) break
+        if (e.shiftKey) {
+          videoStore.setCurrentTime(videoStore.currentTime - 60)
+        } else if (e.ctrlKey) {
+          videoStore.setCurrentTime(videoStore.currentTime - 10)
+        } else {
+          stepFrame(-1)
+        }
+        break
+
+      case 'ArrowRight':
+        e.preventDefault()
+        if (!videoStore.hasFile) break
+        if (e.shiftKey) {
+          videoStore.setCurrentTime(videoStore.currentTime + 60)
+        } else if (e.ctrlKey) {
+          videoStore.setCurrentTime(videoStore.currentTime + 10)
+        } else {
+          stepFrame(1)
+        }
+        break
+
       case 'Comma':
         e.preventDefault()
         if (videoStore.hasFile) stepFrame(-1)
         break
 
-      case 'ArrowRight':
       case 'Period':
         e.preventDefault()
         if (videoStore.hasFile) stepFrame(1)
+        break
+
+      case 'KeyM':
+        e.preventDefault()
+        if (videoStore.hasFile) videoStore.toggleMute()
         break
 
       case 'Delete':

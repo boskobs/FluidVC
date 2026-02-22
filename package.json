@@ -1,7 +1,7 @@
 {
   "name": "fluidvc",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "A multiplatform video segment editor",
   "homepage": "https://github.com/boskobs/fluidvc",

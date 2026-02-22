@@ -2,7 +2,9 @@
 
 **A fast, no-fuss desktop video segment editor.**  
 
-
+![Main interface](https://raw.githubusercontent.com/boskobs/fluidvc/main/docs/screenshots/1-Main.png)
+![Export panel](https://raw.githubusercontent.com/boskobs/fluidvc/main/docs/screenshots/2-Export.png)
+![Exporting progress](https://raw.githubusercontent.com/boskobs/fluidvc/main/docs/screenshots/3-Exporting.png)
 
 ---
 
