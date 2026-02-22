@@ -54,6 +54,11 @@ npm install
 # Run in development mode
 npm run dev
 
+# Download ffmpeg and ffprobe dependencies
+cd scripts
+./downloadFF.mjs
+cd ..
+
 # Build for Linux (AppImage)
 npm run build:linux
 

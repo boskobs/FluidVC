@@ -21,7 +21,7 @@ jobs:
             build-script: build:win
             install-command: npm install
             artifact-name: fluidvc-windows
-            artifact-path: release/**/*.exe
+            artifact-path: release/**/*-Portable.exe
 
     runs-on: ${{ matrix.runs-on }}
 
@@ -61,15 +61,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           files: |
             ./artifacts/fluidvc-linux/**/*.AppImage
-            ./artifacts/fluidvc-windows/**/*.exe
-      - name: Create/Update GitHub release for latest tag
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: Release latest
-          files: |
-            ./artifacts/fluidvc-linux/**/*.AppImage
-            ./artifacts/fluidvc-windows/**/*.exe
+            ./artifacts/fluidvc-windows/**/*-Portable.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Git
@@ -80,5 +72,15 @@ jobs:
         run: |
           git tag -f latest ${{ github.sha }}
           git push -f origin latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create/Update GitHub release for latest tag
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Release latest
+          files: |
+            ./artifacts/fluidvc-linux/**/*.AppImage
+            ./artifacts/fluidvc-windows/**/*-Portable.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

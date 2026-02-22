@@ -48,9 +48,16 @@ defineExpose({ play, pause, togglePlay, seek, stepFrame, videoRef })
 // webSecurity is disabled in main.js so file:// loads work from the HTTP renderer origin.
 const videoSrc = computed(() => {
   if (!videoStore.file?.path) return ''
-  // Encode each path segment so spaces and special chars are safe, but keep slashes.
-  const encoded = videoStore.file.path.split('/').map(seg => encodeURIComponent(seg)).join('/')
-  return `file://${encoded}`
+  // Normalize Windows backslashes to forward slashes.
+  const normalized = videoStore.file.path.replace(/\\/g, '/')
+  // Encode each segment for spaces/special chars, but leave Windows drive letters (e.g. "C:") intact.
+  const encoded = normalized.split('/').map((seg, i) => {
+    if (i === 0 && /^[a-zA-Z]:$/.test(seg)) return seg  // Windows drive letter
+    return encodeURIComponent(seg)
+  }).join('/')
+  // Unix paths start with / → encoded="/home/..." → "file:///home/..."
+  // Windows paths start with drive letter → encoded="C:/..." → "file:///C:/..."
+  return (encoded.startsWith('/') ? 'file://' : 'file:///') + encoded
 })
 
 function onVideoError() {

@@ -4,10 +4,7 @@
   "appId": "com.fluidvc.app",
   "icon": "public/icon.png",
   "asar": true,
-  "asarUnpack": [
-    "node_modules/ffmpeg-static/**",
-    "node_modules/ffprobe-static/**"
-  ],
+  "asarUnpack": [],
   "productName": "FluidVC",
   "directories": {
     "output": "release/${version}"
@@ -17,12 +14,20 @@
     "dist-electron"
   ],
   "mac": {
+    "extraResources": [
+      { "from": "resources/ffmpeg", "to": "ffmpeg" },
+      { "from": "resources/ffprobe", "to": "ffprobe" }
+    ],
     "target": [
       "dmg"
     ],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
   },
   "win": {
+    "extraResources": [
+      { "from": "resources/ffmpeg.exe", "to": "ffmpeg.exe" },
+      { "from": "resources/ffprobe.exe", "to": "ffprobe.exe" }
+    ],
     "target": [
       {
         "target": "portable",
@@ -34,6 +39,10 @@
     "artifactName": "${productName}-Windows-${version}-Portable.${ext}"
   },
   "linux": {
+    "extraResources": [
+      { "from": "resources/ffmpeg", "to": "ffmpeg" },
+      { "from": "resources/ffprobe", "to": "ffprobe" }
+    ],
     "target": [
       "AppImage"
     ],

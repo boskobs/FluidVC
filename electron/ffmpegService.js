@@ -9,23 +9,25 @@ import { buildSegmentCutArgs, buildConcatFileContent, buildMetadataFileContent }
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// Resolve ffmpeg / ffprobe binaries — works both in dev and after asar packaging
+// Resolve ffmpeg / ffprobe binaries — works both in dev and after packaging.
+// In a packaged app, binaries are placed in process.resourcesPath via extraResources.
+// In dev, fall back to the npm packages (ffmpeg-static / ffprobe-static).
 function resolveBinary(pkg) {
+  const binName = pkg.replace('-static', '')
+  const exeName = process.platform === 'win32' ? `${binName}.exe` : binName
+
+  // Packaged: binary is at resources/ffmpeg or resources/ffmpeg.exe
+  const resourceBin = path.join(process.resourcesPath, exeName)
+  if (fs.existsSync(resourceBin)) return resourceBin
+
+  // Dev: use the npm package
   try {
-    // When installed normally
-    return require(pkg)
-  } catch {
-    // Fallback: walk up from __dirname trying to find node_modules
-    let dir = __dirname
-    for (let i = 0; i < 6; i++) {
-      const candidate = path.join(dir, 'node_modules', pkg, 'ffmpeg')
-      if (fs.existsSync(candidate)) return candidate
-      const candidateExe = candidate + '.exe'
-      if (fs.existsSync(candidateExe)) return candidateExe
-      dir = path.dirname(dir)
-    }
-    throw new Error(`Could not find binary for ${pkg}`)
-  }
+    const resolved = require(pkg)
+    const p = typeof resolved === 'string' ? resolved : resolved.path
+    if (p && fs.existsSync(p)) return p
+  } catch {}
+
+  throw new Error(`Could not find binary for ${pkg}`)
 }
 
 let ffmpegPath = null
@@ -33,14 +35,7 @@ let ffprobePath = null
 
 function ensurePaths() {
   if (!ffmpegPath) ffmpegPath = resolveBinary('ffmpeg-static')
-  if (!ffprobePath) {
-    try {
-      const mod = require('ffprobe-static')
-      ffprobePath = mod.path || mod
-    } catch {
-      ffprobePath = resolveBinary('ffprobe-static')
-    }
-  }
+  if (!ffprobePath) ffprobePath = resolveBinary('ffprobe-static')
 }
 
 // Single in-flight process reference for cancellation
