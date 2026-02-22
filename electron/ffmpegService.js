@@ -1,41 +1,43 @@
-import { spawn } from 'node:child_process'
-import { createRequire } from 'node:module'
-import { fileURLToPath } from 'node:url'
+import { spawn, execFileSync } from 'node:child_process'
 import path from 'node:path'
 import fs from 'node:fs'
 import os from 'node:os'
 import { buildSegmentCutArgs, buildConcatFileContent, buildMetadataFileContent } from './ffmpegArgs.js'
 
-const require = createRequire(import.meta.url)
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// Resolve ffmpeg / ffprobe binaries.
+// Priority:
+//   1. process.resourcesPath (extraResources in packaged app)
+//   2. APP_ROOT/resources/ (dev mode project folder)
+//   3. System PATH
+function resolveBinary(name) {
+  const exeName = process.platform === 'win32' ? `${name}.exe` : name
 
-// Resolve ffmpeg / ffprobe binaries — works both in dev and after packaging.
-// In a packaged app, binaries are placed in process.resourcesPath via extraResources.
-// In dev, fall back to the npm packages (ffmpeg-static / ffprobe-static).
-function resolveBinary(pkg) {
-  const binName = pkg.replace('-static', '')
-  const exeName = process.platform === 'win32' ? `${binName}.exe` : binName
-
-  // Packaged: binary is at resources/ffmpeg or resources/ffmpeg.exe
+  // 1. Packaged: extraResources copies binaries next to the asar
   const resourceBin = path.join(process.resourcesPath, exeName)
   if (fs.existsSync(resourceBin)) return resourceBin
 
-  // Dev: use the npm package
+  // 2. Dev: APP_ROOT/resources/ in project root
+  if (process.env.APP_ROOT) {
+    const devBin = path.join(process.env.APP_ROOT, 'resources', exeName)
+    if (fs.existsSync(devBin)) return devBin
+  }
+
+  // 3. System PATH
+  const which = process.platform === 'win32' ? 'where' : 'which'
   try {
-    const resolved = require(pkg)
-    const p = typeof resolved === 'string' ? resolved : resolved.path
-    if (p && fs.existsSync(p)) return p
+    const result = execFileSync(which, [name], { encoding: 'utf8' }).trim().split('\n')[0].trim()
+    if (result && fs.existsSync(result)) return result
   } catch {}
 
-  throw new Error(`Could not find binary for ${pkg}`)
+  throw new Error(`Could not find binary: ${exeName}`)
 }
 
 let ffmpegPath = null
 let ffprobePath = null
 
 function ensurePaths() {
-  if (!ffmpegPath) ffmpegPath = resolveBinary('ffmpeg-static')
-  if (!ffprobePath) ffprobePath = resolveBinary('ffprobe-static')
+  if (!ffmpegPath) ffmpegPath = resolveBinary('ffmpeg')
+  if (!ffprobePath) ffprobePath = resolveBinary('ffprobe')
 }
 
 // Single in-flight process reference for cancellation

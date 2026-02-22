@@ -16,12 +16,17 @@ export default defineConfig({
       preload: {
         input: path.join(__dirname, 'electron/preload.js'),
       },
-      renderer: process.env.NODE_ENV === 'test' ? undefined : {},
+      renderer: process.env.NODE_ENV === 'test' ? undefined : {}
     }),
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
+      '@': path.resolve(__dirname, 'src')
+    },
+  },
+  server: {
+    watch: {
+      ignored: ['**/.flatpak-builder/**']
     },
   },
 })
