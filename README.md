@@ -18,19 +18,29 @@ FluidVC lets you cut one video file into named segments and merge them into a si
 2. **Mark segments** — scrub to a start point and press `I`, scrub to an end point and press `O`. Repeat for as many clips as you need.
 3. **Name your segments** — expand any segment and give it a title. Named segments become chapters in the output file.
 4. **Reorder** — drag segments up or down in the list to change the output order.
-5. **Export** — choose stream copy (fast, lossless) or re-encode, pick an output path, done.
+5. **Export** — choose an export mode (stream copy, or re-encode), pick an output path, done.
 
 ---
 
 ## Features
 
 - **Non-destructive** — the source file is never modified
-- **Stream copy mode** — cuts are near-instant and lossless; no quality loss, no waiting for re-encode
-- **Re-encode mode** — H.264 / custom codec with adjustable quality (CRF)
+- **Stream copy mode** — cuts are near-instant and lossless; cut points snap to the nearest keyframe
+- **Re-encode mode** — H.264 / H.265 / VP9 with adjustable quality (CRF); fully frame-accurate
 - **Named chapters** — segment names are written as chapter metadata in the output (MP4, MKV)
 - **Chapter-accurate timestamps** — in stream copy mode, chapter timings are snapped to actual keyframe boundaries
 - **Drag-to-reorder** — live drop indicator shows exactly where a segment will land
-- **Keyboard shortcuts** — `Space` play/pause, `I`/`O` mark in/out, `←`/`→` step frame
+- **Keyboard shortcuts** —  
+  • `Space` play/pause  
+  • `I` mark in point  
+  • `O`/`E` mark out point (create segment)  
+  • `M` toggle mute  
+  • `←`/`→` seek backward/forward 10 s  
+  • `Ctrl + ←`/`Ctrl + →` seek 60 s  
+  • `Shift + ←`/`Shift + →` step one frame  
+  • `,`/`.` step backward/forward (alternate frame keys)  
+  • `ArrowUp`/`ArrowDown` volume up/down  
+  • `Delete`/`Backspace` remove selected segment  
 - **Timeline scrubbing** — click or drag the timeline to seek; segment ranges shown as colored overlays
 - **Click-to-play** — click the video to toggle playback
 
@@ -43,7 +53,7 @@ Pre-built binaries are on the [Releases](https://github.com/boskobs/FluidVC/rele
 | Platform | Format |
 |---|---|
 | Linux | `.AppImage` (no install needed, just make executable and run) |
-| Windows | Portable `.exe` (no install needed) |
+| Windows | `.exe` (installer and portable) |
 
 ---
 

@@ -10,15 +10,17 @@ import { useSegmentStore } from '@/stores/segmentStore.js'
  *   Space            — toggle play/pause
  *   I                — mark in point
  *   O / E            — mark out point (creates segment)
- *   ArrowLeft        — step back one frame
- *   ArrowRight       — step forward one frame
- *   Ctrl+ArrowLeft   — seek back 10 seconds
- *   Ctrl+ArrowRight  — seek forward 10 seconds
- *   Shift+ArrowLeft  — seek back 60 seconds
- *   Shift+ArrowRight — seek forward 60 seconds
+ *   M                — toggle mute
+ *   ArrowUp          — volume up
+ *   ArrowDown        — volume down
+ *   ArrowLeft        — seek back 10 seconds
+ *   ArrowRight       — seek forward 10 seconds
+ *   Ctrl+ArrowLeft   — seek back 60 seconds
+ *   Ctrl+ArrowRight  — seek forward 60 seconds
+ *   Shift+ArrowLeft  — step back one frame
+ *   Shift+ArrowRight — step forward one frame
  *   ,                — step back (prev frame alias)
  *   .                — step forward (next frame alias)
- *   M                — toggle mute
  *   Delete/Backspace — delete selected segment
  *
  * @param {object} opts
@@ -55,11 +57,11 @@ export function useKeyboardShortcuts({ togglePlay, stepFrame }) {
         e.preventDefault()
         if (!videoStore.hasFile) break
         if (e.shiftKey) {
-          videoStore.setCurrentTime(videoStore.currentTime - 60)
-        } else if (e.ctrlKey) {
-          videoStore.setCurrentTime(videoStore.currentTime - 10)
-        } else {
           stepFrame(-1)
+        } else if (e.ctrlKey) {
+          videoStore.setCurrentTime(videoStore.currentTime - 60)
+        } else {
+          videoStore.setCurrentTime(videoStore.currentTime - 10)
         }
         break
 
@@ -67,12 +69,22 @@ export function useKeyboardShortcuts({ togglePlay, stepFrame }) {
         e.preventDefault()
         if (!videoStore.hasFile) break
         if (e.shiftKey) {
-          videoStore.setCurrentTime(videoStore.currentTime + 60)
-        } else if (e.ctrlKey) {
-          videoStore.setCurrentTime(videoStore.currentTime + 10)
-        } else {
           stepFrame(1)
+        } else if (e.ctrlKey) {
+          videoStore.setCurrentTime(videoStore.currentTime + 60)
+        } else {
+          videoStore.setCurrentTime(videoStore.currentTime + 10)
         }
+        break
+
+      case 'ArrowUp':
+        e.preventDefault()
+        if (videoStore.hasFile) videoStore.setVolume(videoStore.volume + 0.1)
+        break
+
+      case 'ArrowDown':
+        e.preventDefault()
+        if (videoStore.hasFile) videoStore.setVolume(videoStore.volume - 0.1)
         break
 
       case 'Comma':

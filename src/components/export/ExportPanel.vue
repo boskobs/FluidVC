@@ -80,7 +80,7 @@
         </div>
       </Transition>
 
-      <!-- Note about stream copy -->
+      <!-- Mode descriptions -->
       <div v-if="mode === 'copy'" class="text-xs text-gray-500 bg-surface-700/30 rounded-md p-2.5">
         <strong class="text-gray-400">Stream copy</strong> is very fast and lossless. Cut points may be slightly
         inaccurate (aligned to keyframes). Use Re-encode for frame-perfect cuts.
