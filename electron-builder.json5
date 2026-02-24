@@ -20,8 +20,7 @@
     ],
     "target": [
       "dmg"
-    ],
-    "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
+    ]
   },
   "win": {
     "extraResources": [
@@ -29,14 +28,9 @@
       { "from": "resources/ffprobe.exe", "to": "ffprobe.exe" }
     ],
     "target": [
-      {
-        "target": "nsis",
-        "arch": [
-          "x64"
-        ]
-      }
-    ],
-    "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
+      { "target": "nsis", "arch": ["x64"] },
+      { "target": "portable", "arch": ["x64"] }
+    ]
   },
   "linux": {
     "extraResources": [
@@ -50,8 +44,7 @@
       }
     ],
     "category": "AudioVideo",
-    "maintainer": "FluidVC <boskobs@gmail.com>",
-    "artifactName": "${productName}-Linux-${version}.${ext}"
+    "maintainer": "FluidVC <boskobs@gmail.com>"
   },
   "publish": {
     "provider": "github",

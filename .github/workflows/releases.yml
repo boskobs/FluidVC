@@ -22,7 +22,9 @@ jobs:
             build-script: build:win
             install-command: npm install
             artifact-name: fluidvc-windows
-            artifact-path: release/**/*-Portable.exe
+            artifact-path: |
+              release/**/*Setup*.exe
+              release/**/*Portable*.exe
             ff-target: win32
 
     runs-on: ${{ matrix.runs-on }}
@@ -65,7 +67,8 @@ jobs:
           name: Release ${{ github.ref_name }}
           files: |
             ./artifacts/fluidvc-linux/**/*.AppImage
-            ./artifacts/fluidvc-windows/**/*-Portable.exe
+            ./artifacts/fluidvc-windows/**/*Setup*.exe
+            ./artifacts/fluidvc-windows/**/*Portable*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Git
@@ -85,6 +88,7 @@ jobs:
           name: Release latest
           files: |
             ./artifacts/fluidvc-linux/**/*.AppImage
-            ./artifacts/fluidvc-windows/**/*-Portable.exe
+            ./artifacts/fluidvc-windows/**/*Setup*.exe
+            ./artifacts/fluidvc-windows/**/*Portable*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
