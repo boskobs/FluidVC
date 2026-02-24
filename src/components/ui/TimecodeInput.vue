@@ -14,6 +14,7 @@
       ]"
       @focus="onFocus"
       @blur="onBlur"
+      @input="onInput"
       @keydown.enter.prevent="commit"
       @keydown.escape.prevent="cancel"
     />
@@ -51,6 +52,10 @@ function onFocus() {
   editBuffer.value = secondsToTimecode(props.modelValue)
   // Select all on next tick
   setTimeout(() => inputRef.value?.select(), 0)
+}
+
+function onInput(e) {
+  editBuffer.value = e.target.value
 }
 
 function onBlur() {
