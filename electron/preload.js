@@ -44,4 +44,35 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('export:progress', handler)
     return () => ipcRenderer.off('export:progress', handler)
   },
+
+  /** Check for updates manually */
+  checkForUpdates() {
+    return ipcRenderer.invoke('updater:checkForUpdates')
+  },
+
+  /** Quit and install the downloaded update */
+  quitAndInstall() {
+    ipcRenderer.send('updater:quitAndInstall')
+  },
+
+  /** Called when an update is available (download starting) */
+  onUpdateAvailable(callback) {
+    const handler = (_, data) => callback(data)
+    ipcRenderer.on('updater:updateAvailable', handler)
+    return () => ipcRenderer.off('updater:updateAvailable', handler)
+  },
+
+  /** Called with download progress { percent } */
+  onDownloadProgress(callback) {
+    const handler = (_, data) => callback(data)
+    ipcRenderer.on('updater:downloadProgress', handler)
+    return () => ipcRenderer.off('updater:downloadProgress', handler)
+  },
+
+  /** Called when update is downloaded and ready to install */
+  onUpdateDownloaded(callback) {
+    const handler = (_, data) => callback(data)
+    ipcRenderer.on('updater:updateDownloaded', handler)
+    return () => ipcRenderer.off('updater:updateDownloaded', handler)
+  },
 })

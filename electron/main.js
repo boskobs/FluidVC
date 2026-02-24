@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, protocol, net } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -62,6 +63,23 @@ app.whenReady().then(() => {
 
   registerIpcHandlers(ipcMain, win, () => win)
   createWindow()
+
+  // Auto-update (production only)
+  if (!VITE_DEV_SERVER_URL) {
+    autoUpdater.checkForUpdates()
+
+    autoUpdater.on('update-available', (info) => {
+      win?.webContents.send('updater:updateAvailable', { version: info.version })
+    })
+
+    autoUpdater.on('download-progress', (progress) => {
+      win?.webContents.send('updater:downloadProgress', { percent: Math.round(progress.percent) })
+    })
+
+    autoUpdater.on('update-downloaded', (info) => {
+      win?.webContents.send('updater:updateDownloaded', { version: info.version })
+    })
+  }
 })
 
 app.on('window-all-closed', () => {

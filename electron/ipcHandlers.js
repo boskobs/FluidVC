@@ -1,4 +1,5 @@
 import { dialog } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import { getVideoMetadata, exportVideo, cancelExport } from './ffmpegService.js'
 
 const VIDEO_EXTENSIONS = ['mp4', 'mkv', 'mov', 'avi', 'webm', 'flv', 'wmv', 'm4v', 'ts', 'mts']
@@ -10,6 +11,10 @@ const VIDEO_EXTENSIONS = ['mp4', 'mkv', 'mov', 'avi', 'webm', 'flv', 'wmv', 'm4v
  * @param {() => Electron.BrowserWindow | null} getWin - lazy getter for current window
  */
 export function registerIpcHandlers(ipcMain, _win, getWin) {
+  // Updater
+  ipcMain.handle('updater:checkForUpdates', () => autoUpdater.checkForUpdates())
+  ipcMain.on('updater:quitAndInstall', () => autoUpdater.quitAndInstall())
+
   // Open a video file dialog and return resolved metadata
   ipcMain.handle('dialog:openVideo', async () => {
     const win = getWin()

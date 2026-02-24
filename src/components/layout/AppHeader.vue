@@ -56,6 +56,23 @@
       Unload Video
     </BaseButton>
 
+    <!-- Update notifications -->
+    <div v-if="updateDownloaded" class="flex items-center gap-2">
+      <button
+        class="flex items-center gap-1.5 text-xs font-medium text-green-400 hover:text-green-300 transition-colors"
+        @click="restartAndUpdate"
+      >
+        <svg class="w-3.5 h-3.5 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Restart to update v{{ updateDownloaded.version }}
+      </button>
+    </div>
+    <div v-else-if="updateAvailable" class="flex items-center gap-1.5 text-xs text-gray-500">
+      <span class="inline-block w-3 h-3 border border-accent border-t-transparent rounded-full animate-spin" />
+      Downloading v{{ updateAvailable.version }}{{ downloadPercent !== null ? ` (${downloadPercent}%)` : '' }}
+    </div>
+
     <BaseButton
       variant="primary"
       size="sm"
@@ -71,6 +88,7 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useVideoStore } from '@/stores/videoStore.js'
 import { useSegmentStore } from '@/stores/segmentStore.js'
 import { formatDuration } from '@/utils/timecode.js'
@@ -80,4 +98,36 @@ const videoStore = useVideoStore()
 const segmentStore = useSegmentStore()
 
 defineEmits(['export'])
+
+// Auto-update state
+const updateAvailable = ref(null)   // { version }
+const updateDownloaded = ref(null)  // { version }
+const downloadPercent = ref(null)
+
+let unsubAvailable, unsubProgress, unsubDownloaded
+
+onMounted(() => {
+  if (!window.api) return
+  unsubAvailable = window.api.onUpdateAvailable((data) => {
+    updateAvailable.value = data
+    downloadPercent.value = 0
+  })
+  unsubProgress = window.api.onDownloadProgress((data) => {
+    downloadPercent.value = data.percent
+  })
+  unsubDownloaded = window.api.onUpdateDownloaded((data) => {
+    updateDownloaded.value = data
+    updateAvailable.value = null
+  })
+})
+
+onUnmounted(() => {
+  unsubAvailable?.()
+  unsubProgress?.()
+  unsubDownloaded?.()
+})
+
+function restartAndUpdate() {
+  window.api.quitAndInstall()
+}
 </script>
