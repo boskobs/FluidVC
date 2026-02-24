@@ -2,10 +2,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const targets = ['win32', 'linux'];
+const allTargets = ['win32', 'linux'];
 const apps = ['ffmpeg', 'ffprobe'];
 
 const getDownloadUrl = (app, platform) => `https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/${app}-${platform}-x64`;
+
+const argTarget = process.argv[2];
+if (argTarget && !allTargets.includes(argTarget)) {
+    console.error(`Unknown target: "${argTarget}". Valid targets: ${allTargets.join(', ')}`);
+    process.exit(1);
+}
+const targets = argTarget ? [argTarget] : allTargets;
 
 if (!fs.existsSync('../resources')) fs.mkdirSync('../resources');
 

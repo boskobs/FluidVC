@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useSegmentStore } from './segmentStore.js'
 
 export const useVideoStore = defineStore('video', () => {
   /** @type {import('vue').Ref<{path:string,name:string,duration:number,width:number,height:number,fps:number,codec:string,size:number}|null>} */
@@ -79,7 +80,10 @@ export const useVideoStore = defineStore('video', () => {
     file.value = null
     currentTime.value = 0
     isPlaying.value = false
+    volume.value = 1
+    isMuted.value = false
     error.value = null
+    useSegmentStore().clearAll()
   }
 
   return {

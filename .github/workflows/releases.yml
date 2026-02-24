@@ -16,12 +16,14 @@ jobs:
             install-command: npm ci
             artifact-name: fluidvc-linux
             artifact-path: release/**/*.AppImage
+            ff-target: linux
           - os: windows
             runs-on: windows-latest
             build-script: build:win
             install-command: npm install
             artifact-name: fluidvc-windows
             artifact-path: release/**/*-Portable.exe
+            ff-target: win32
 
     runs-on: ${{ matrix.runs-on }}
 
@@ -35,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: ${{ matrix.install-command }}
       - name: Download FFmpeg binaries
-        run: cd scripts && node downloadFF.mjs
+        run: cd scripts && node downloadFF.mjs ${{ matrix.ff-target }}
       - name: Build for ${{ matrix.os }}
         run: npm run ${{ matrix.build-script }}
         env:
