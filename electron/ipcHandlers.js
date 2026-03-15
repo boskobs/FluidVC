@@ -1,6 +1,6 @@
 import { dialog } from 'electron'
 import { autoUpdater } from 'electron-updater'
-import { getVideoMetadata, exportVideo, cancelExport } from './ffmpegService.js'
+import { getVideoMetadata, exportVideo, cancelExport, createProxyVideo } from './ffmpegService.js'
 
 const VIDEO_EXTENSIONS = ['mp4', 'mkv', 'mov', 'avi', 'webm', 'flv', 'wmv', 'm4v', 'ts', 'mts']
 
@@ -73,5 +73,15 @@ export function registerIpcHandlers(ipcMain, _win, getWin) {
   ipcMain.handle('video:cancelExport', () => {
     cancelExport()
     return { success: true }
+  })
+
+  // Create a 240p proxy for codecs Chromium cannot play natively
+  ipcMain.handle('video:createProxy', async (_, filePath) => {
+    try {
+      const proxyPath = await createProxyVideo(filePath)
+      return { success: true, proxyPath }
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
   })
 }

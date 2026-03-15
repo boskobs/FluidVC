@@ -221,7 +221,7 @@ export async function exportVideo(opts) {
     for (const f of tempFiles) {
       try { fs.unlinkSync(f) } catch {}
     }
-    try { fs.rmdirSync(tempDir, { recursive: true }) } catch {}
+    try { fs.rmSync(tempDir, { recursive: true }) } catch {}
   }
 }
 
@@ -262,6 +262,107 @@ export function cancelExport() {
   if (activeProcess) {
     activeProcess.kill('SIGKILL')
     activeProcess = null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Proxy video creation
+// Creates a temporary 240p H.264 proxy for codecs Chromium cannot play.
+// The original file is always used for export.
+// ---------------------------------------------------------------------------
+
+let activeProxyProcess = null
+let currentProxyDir = null
+
+/**
+ * Chromium-compatible video codecs that don't need a proxy.
+ * Anything not in this set triggers proxy creation.
+ */
+const BROWSER_COMPATIBLE_CODECS = new Set([
+  'h264', 'avc1', 'vp8', 'vp9', 'av1', 'theora',
+])
+
+/**
+ * Returns true when the codec requires a proxy for Chromium playback.
+ * @param {string} codec
+ */
+export function codecNeedsProxy(codec) {
+  return !BROWSER_COMPATIBLE_CODECS.has((codec || '').toLowerCase())
+}
+
+/**
+ * Transcode the input to a 240p H.264 proxy stored in a temp directory.
+ * Cancels and replaces any previously created proxy.
+ * @param {string} inputPath
+ * @returns {Promise<string>} proxyPath
+ */
+export function createProxyVideo(inputPath) {
+  ensurePaths()
+
+  // Cancel any in-flight proxy creation
+  if (activeProxyProcess) {
+    activeProxyProcess.kill('SIGKILL')
+    activeProxyProcess = null
+  }
+
+  // Clean up previous proxy directory
+  if (currentProxyDir) {
+    try { fs.rmSync(currentProxyDir, { recursive: true }) } catch {}
+    currentProxyDir = null
+  }
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluidvc-proxy-'))
+  currentProxyDir = tempDir
+  const proxyPath = path.join(tempDir, 'proxy.mp4')
+
+  const args = [
+    '-y',
+    '-i', inputPath,
+    '-vf', 'scale=-2:240',
+    '-c:v', 'libx264',
+    '-preset', 'ultrafast',
+    '-crf', '28',
+    '-c:a', 'aac',
+    '-b:a', '64k',
+    '-movflags', '+faststart',
+    proxyPath,
+  ]
+
+  return new Promise((resolve, reject) => {
+    const proc = spawn(ffmpegPath, args)
+    activeProxyProcess = proc
+
+    let stderr = ''
+    proc.stderr.on('data', (chunk) => { stderr += chunk.toString() })
+    proc.on('close', (code) => {
+      activeProxyProcess = null
+      if (code === 0 || code === null) {
+        resolve(proxyPath)
+      } else {
+        try { fs.rmSync(tempDir, { recursive: true }) } catch {}
+        if (currentProxyDir === tempDir) currentProxyDir = null
+        reject(new Error(`FFmpeg proxy failed (code ${code})\n${stderr.slice(-500)}`))
+      }
+    })
+    proc.on('error', (err) => {
+      activeProxyProcess = null
+      reject(err)
+    })
+  })
+}
+
+/**
+ * Kill any in-flight proxy process and delete the proxy temp directory.
+ * Call this on app quit or when unloading a file.
+ */
+export function cleanupProxy() {
+  if (activeProxyProcess) {
+    activeProxyProcess.kill('SIGKILL')
+    activeProxyProcess = null
+  }
+  if (currentProxyDir) {
+    try { fs.rmSync(currentProxyDir, { recursive: true }) } catch {}
+    currentProxyDir = null
   }
 }
 

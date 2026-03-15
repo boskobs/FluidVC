@@ -12,11 +12,62 @@ export const useVideoStore = defineStore('video', () => {
   const isLoading = ref(false)
   const error = ref(null)
 
+  // Proxy state — used when the original codec isn't playable by Chromium
+  const proxyPath = ref(null)
+  const isCreatingProxy = ref(false)
+
+  /**
+   * Codecs that Chromium can play natively without a proxy.
+   */
+  const BROWSER_COMPATIBLE_CODECS = new Set(['h264', 'avc1', 'vp8', 'vp9', 'av1', 'theora'])
+
+  /**
+   * The path that should be used as the video element source.
+   * Returns null while a proxy is being created (hides the element to avoid
+   * a flash of error), the proxy path once ready, or the original path.
+   */
+  const sourcePath = computed(() => {
+    if (isCreatingProxy.value) return null
+    return proxyPath.value ?? file.value?.path ?? null
+  })
+
   const hasFile = computed(() => file.value !== null)
   const duration = computed(() => file.value?.duration ?? 0)
   const progress = computed(() =>
     duration.value > 0 ? (currentTime.value / duration.value) * 100 : 0,
   )
+
+  /**
+   * Kick off proxy creation for the currently loaded file.
+   * Safe to call multiple times — ignores duplicate calls.
+   */
+  async function createProxy() {
+    if (!file.value || isCreatingProxy.value || proxyPath.value) return
+    isCreatingProxy.value = true
+    error.value = null
+    try {
+      const result = await window.api.createProxyVideo(file.value.path)
+      if (result.success) {
+        proxyPath.value = result.proxyPath
+      } else {
+        error.value = `Could not create proxy: ${result.error}`
+      }
+    } catch (e) {
+      error.value = e.message
+    } finally {
+      isCreatingProxy.value = false
+    }
+  }
+
+  /**
+   * After metadata is loaded, automatically start proxy creation if needed.
+   * @param {{ codec: string }} metadata
+   */
+  function maybeCreateProxy(metadata) {
+    if (metadata && !BROWSER_COMPATIBLE_CODECS.has((metadata.codec || '').toLowerCase())) {
+      createProxy()
+    }
+  }
 
   /**
    * Open the native file dialog and load a video.
@@ -25,12 +76,15 @@ export const useVideoStore = defineStore('video', () => {
   async function loadFile() {
     isLoading.value = true
     error.value = null
+    proxyPath.value = null
+    isCreatingProxy.value = false
     try {
       const metadata = await window.api.openVideoFile()
       if (metadata) {
         file.value = metadata
         currentTime.value = 0
         isPlaying.value = false
+        maybeCreateProxy(metadata)
       }
     } catch (e) {
       error.value = e.message
@@ -46,12 +100,15 @@ export const useVideoStore = defineStore('video', () => {
   async function loadFilePath(filePath) {
     isLoading.value = true
     error.value = null
+    proxyPath.value = null
+    isCreatingProxy.value = false
     try {
       const metadata = await window.api.getVideoMetadata(filePath)
       if (metadata) {
         file.value = metadata
         currentTime.value = 0
         isPlaying.value = false
+        maybeCreateProxy(metadata)
       }
     } catch (e) {
       error.value = e.message
@@ -83,6 +140,8 @@ export const useVideoStore = defineStore('video', () => {
     volume.value = 1
     isMuted.value = false
     error.value = null
+    proxyPath.value = null
+    isCreatingProxy.value = false
     useSegmentStore().clearAll()
   }
 
@@ -94,6 +153,9 @@ export const useVideoStore = defineStore('video', () => {
     isMuted,
     isLoading,
     error,
+    proxyPath,
+    isCreatingProxy,
+    sourcePath,
     hasFile,
     duration,
     progress,
@@ -104,5 +166,6 @@ export const useVideoStore = defineStore('video', () => {
     setVolume,
     toggleMute,
     unloadFile,
+    createProxy,
   }
 })

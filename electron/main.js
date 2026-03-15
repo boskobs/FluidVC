@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { registerIpcHandlers } from './ipcHandlers.js'
+import { cleanupProxy } from './ffmpegService.js'
 
 // Must be called before app.whenReady()
 protocol.registerSchemesAsPrivileged([
@@ -83,6 +84,7 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
+  cleanupProxy()
   if (process.platform !== 'darwin') {
     app.quit()
     win = null

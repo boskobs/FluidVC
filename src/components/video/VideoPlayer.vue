@@ -18,9 +18,19 @@
       <span class="inline-block w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
     </div>
 
+    <!-- Proxy creation overlay -->
+    <div
+      v-else-if="videoStore.isCreatingProxy"
+      class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70"
+    >
+      <span class="inline-block w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+      <p class="text-sm text-gray-300">Preparing proxy for playback…</p>
+      <p class="text-xs text-gray-500">Original file will be used for export</p>
+    </div>
+
     <!-- Error overlay -->
     <div
-      v-if="videoStore.error"
+      v-else-if="videoStore.error"
       class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80"
     >
       <svg class="w-8 h-8 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -44,12 +54,13 @@ const videoRef = ref(null)
 const { play, pause, togglePlay, seek, stepFrame } = useVideoPlayer(videoRef)
 defineExpose({ play, pause, togglePlay, seek, stepFrame, videoRef })
 
-// Build a file:// URL for the local video.
+// Build a file:// URL for the local video (original or proxy).
 // webSecurity is disabled in main.js so file:// loads work from the HTTP renderer origin.
 const videoSrc = computed(() => {
-  if (!videoStore.file?.path) return ''
+  const p = videoStore.sourcePath
+  if (!p) return ''
   // Normalize Windows backslashes to forward slashes.
-  const normalized = videoStore.file.path.replace(/\\/g, '/')
+  const normalized = p.replace(/\\/g, '/')
   // Encode each segment for spaces/special chars, but leave Windows drive letters (e.g. "C:") intact.
   const encoded = normalized.split('/').map((seg, i) => {
     if (i === 0 && /^[a-zA-Z]:$/.test(seg)) return seg  // Windows drive letter
@@ -64,6 +75,17 @@ function onVideoError() {
   const el = videoRef.value
   if (!el) return
   const code = el.error?.code
+
+  // If the format isn't supported and we don't have a proxy yet, request one.
+  // This covers codecs that passed the whitelist check but still fail in practice.
+  if ((code === 3 || code === 4) && videoStore.file && !videoStore.proxyPath && !videoStore.isCreatingProxy) {
+    videoStore.createProxy()
+    return
+  }
+
+  // Don't overwrite an error that's already being handled by proxy creation
+  if (videoStore.isCreatingProxy) return
+
   const msgs = {
     1: 'Playback aborted',
     2: 'Network error loading video',

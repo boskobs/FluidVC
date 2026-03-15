@@ -34,6 +34,15 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   /**
+   * Create a 240p H.264 proxy for a video the browser cannot play natively.
+   * @param {string} filePath - path to the original video
+   * @returns {Promise<{success: boolean, proxyPath?: string, error?: string}>}
+   */
+  createProxyVideo(filePath) {
+    return ipcRenderer.invoke('video:createProxy', filePath)
+  },
+
+  /**
    * Register a callback for export progress updates.
    * Returns an unsubscribe function.
    * @param {function} callback
