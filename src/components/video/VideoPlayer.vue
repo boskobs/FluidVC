@@ -2,7 +2,7 @@
   <div class="relative w-full h-full bg-black flex items-center justify-center overflow-hidden rounded-lg">
     <video
       ref="videoRef"
-      class="max-w-full max-h-full object-contain cursor-pointer"
+      class="w-full h-full object-contain cursor-pointer"
       :src="videoSrc"
       preload="metadata"
       @loadedmetadata="onLoaded"
